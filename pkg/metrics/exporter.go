@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
@@ -88,9 +89,9 @@ func ExportToCSV(results []*common.BenchmarkResult, filename string) error {
 
 // PrintResults prints benchmark results to console
 func PrintResults(result *common.BenchmarkResult) {
-	fmt.Println("\n" + "=" * 80)
+	fmt.Println("\n" + strings.Repeat("=", 80))
 	fmt.Printf("Benchmark Results: %s\n", result.QueueType)
-	fmt.Println("=" * 80)
+	fmt.Println(strings.Repeat("=", 80))
 	fmt.Printf("Messages:           %d\n", result.MessageCount)
 	fmt.Printf("Duration:           %v\n", result.Duration)
 	fmt.Printf("Throughput:         %.2f msg/s\n", result.Throughput)
@@ -105,16 +106,16 @@ func PrintResults(result *common.BenchmarkResult) {
 	fmt.Printf("  P95:              %.2f ms\n", float64(result.P95Latency.Microseconds())/1000.0)
 	fmt.Printf("  P99:              %.2f ms\n", float64(result.P99Latency.Microseconds())/1000.0)
 	fmt.Printf("  Max:              %.2f ms\n", float64(result.MaxLatency.Microseconds())/1000.0)
-	fmt.Println("=" * 80 + "\n")
+	fmt.Println(strings.Repeat("=", 80) + "\n")
 }
 
 // CompareResults prints a comparison of multiple benchmark results
 func CompareResults(results []*common.BenchmarkResult) {
-	fmt.Println("\n" + "=" * 100)
+	fmt.Println("\n" + strings.Repeat("=", 100))
 	fmt.Println("Benchmark Comparison")
-	fmt.Println("=" * 100)
+	fmt.Println(strings.Repeat("=", 100))
 	fmt.Printf("%-25s %-15s %-15s %-15s %-15s\n", "Queue Type", "Throughput", "MB/s", "Avg Latency", "P99 Latency")
-	fmt.Println("-" * 100)
+	fmt.Println(strings.Repeat("-", 100))
 
 	for _, result := range results {
 		fmt.Printf("%-25s %-15.2f %-15.2f %-15.2f %-15.2f\n",
@@ -126,7 +127,7 @@ func CompareResults(results []*common.BenchmarkResult) {
 		)
 	}
 
-	fmt.Println("=" * 100 + "\n")
+	fmt.Println(strings.Repeat("=", 100) + "\n")
 }
 
 // GenerateReport generates a comprehensive benchmark report

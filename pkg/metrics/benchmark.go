@@ -91,7 +91,6 @@ func (b *Benchmark) RunConsumerBenchmark(queue common.MessageQueue, expectedMess
 	b.collector.Reset()
 
 	var wg sync.WaitGroup
-	messagesChan := make(chan *common.Message, 1000)
 	stopChan := make(chan bool)
 	receivedCount := 0
 	var countMu sync.Mutex
