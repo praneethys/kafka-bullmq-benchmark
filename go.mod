@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
-	github.com/redis/go-redis/v9 v9.4.0
 	github.com/google/uuid v1.5.0
+	github.com/redis/go-redis/v9 v9.4.0
 )
 
 require (
