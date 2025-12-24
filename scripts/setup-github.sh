@@ -61,12 +61,12 @@ fi
 echo
 echo "Step 2: Updating module path in go.mod"
 echo "----------------------------------------"
-sed -i.bak "s|module github.com/yourusername/kafka-bullmq-benchmark|module github.com/${github_username}/${repo_name}|g" go.mod
+sed -i.bak "s|module github.com/praneethys/kafka-bullmq-benchmark|module github.com/${github_username}/${repo_name}|g" go.mod
 rm go.mod.bak 2>/dev/null || true
 
 # Update imports in Go files
 echo "Updating imports in Go files..."
-find . -name "*.go" -type f -exec sed -i.bak "s|github.com/yourusername/kafka-bullmq-benchmark|github.com/${github_username}/${repo_name}|g" {} \;
+find . -name "*.go" -type f -exec sed -i.bak "s|github.com/praneethys/kafka-bullmq-benchmark|github.com/${github_username}/${repo_name}|g" {} \;
 find . -name "*.go.bak" -type f -delete
 
 # Commit the changes

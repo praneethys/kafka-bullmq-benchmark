@@ -160,7 +160,7 @@ The script will:
 # 1. Create repository on GitHub (don't initialize with README)
 # 2. Update module path in go.mod and imports
 # 3. Add remote and push
-git remote add origin https://github.com/yourusername/your-repo-name.git
+git remote add origin https://github.com/praneethys/your-repo-name.git
 git branch -M main
 git push -u origin main
 ```

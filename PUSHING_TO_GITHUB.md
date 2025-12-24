@@ -25,12 +25,12 @@ The script will:
 
 ### Step 2: Update Module Paths
 
-Replace `yourusername` with your actual GitHub username in these files:
+Replace `praneethys` with your actual GitHub username in these files:
 
 **In go.mod:**
 ```bash
 # Replace this line:
-module github.com/yourusername/kafka-bullmq-benchmark
+module github.com/praneethys/kafka-bullmq-benchmark
 
 # With (example):
 module github.com/praneethyerrapragada/kafka-bullmq-benchmark
@@ -39,10 +39,10 @@ module github.com/praneethyerrapragada/kafka-bullmq-benchmark
 **In all .go files:**
 ```bash
 # Use find and replace (macOS/Linux):
-find . -name "*.go" -type f -exec sed -i '' 's|github.com/yourusername/kafka-bullmq-benchmark|github.com/YOUR_ACTUAL_USERNAME/kafka-bullmq-benchmark|g' {} \;
+find . -name "*.go" -type f -exec sed -i '' 's|github.com/praneethys/kafka-bullmq-benchmark|github.com/YOUR_ACTUAL_USERNAME/kafka-bullmq-benchmark|g' {} \;
 
 # Or on Linux:
-find . -name "*.go" -type f -exec sed -i 's|github.com/yourusername/kafka-bullmq-benchmark|github.com/YOUR_ACTUAL_USERNAME/kafka-bullmq-benchmark|g' {} \;
+find . -name "*.go" -type f -exec sed -i 's|github.com/praneethys/kafka-bullmq-benchmark|github.com/YOUR_ACTUAL_USERNAME/kafka-bullmq-benchmark|g' {} \;
 ```
 
 ### Step 3: Commit the Changes

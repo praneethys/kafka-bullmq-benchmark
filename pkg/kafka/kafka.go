@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/common"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
 )
 
 // KafkaQueue implements the MessageQueue interface for Apache Kafka

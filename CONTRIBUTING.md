@@ -38,7 +38,7 @@ If you find a bug or have a suggestion:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/kafka-bullmq-benchmark.git
+git clone https://github.com/praneethys/kafka-bullmq-benchmark.git
 cd kafka-bullmq-benchmark
 ```
 

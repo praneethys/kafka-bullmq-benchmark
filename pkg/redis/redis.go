@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/common"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
 )
 
 // RedisQueue implements the MessageQueue interface using Redis Streams (BullMQ equivalent)

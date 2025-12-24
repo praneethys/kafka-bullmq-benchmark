@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/common"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
 )
 
 // Benchmark runs performance tests on message queues

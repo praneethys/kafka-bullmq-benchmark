@@ -52,7 +52,7 @@ This guide will help you set up and run the Kafka vs BullMQ benchmark.
 
 If you haven't already:
 ```bash
-git clone https://github.com/yourusername/kafka-bullmq-benchmark.git
+git clone https://github.com/praneethys/kafka-bullmq-benchmark.git
 cd kafka-bullmq-benchmark
 ```
 

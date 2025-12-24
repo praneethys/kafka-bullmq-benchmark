@@ -1,4 +1,4 @@
-module github.com/yourusername/kafka-bullmq-benchmark
+module github.com/praneethys/kafka-bullmq-benchmark
 
 go 1.21
 

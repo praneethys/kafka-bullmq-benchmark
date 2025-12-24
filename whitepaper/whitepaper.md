@@ -430,7 +430,7 @@ Potential areas for further research:
 
 ## Appendix A: Benchmark Code
 
-Full source code available at: https://github.com/yourusername/kafka-bullmq-benchmark
+Full source code available at: https://github.com/praneethys/kafka-bullmq-benchmark
 
 ## Appendix B: Detailed Results
 

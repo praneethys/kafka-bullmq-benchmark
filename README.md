@@ -56,7 +56,7 @@ The benchmark measures:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/kafka-bullmq-benchmark.git
+git clone https://github.com/praneethys/kafka-bullmq-benchmark.git
 cd kafka-bullmq-benchmark
 ```
 
@@ -275,7 +275,7 @@ If you use this benchmark in your research, please cite:
 
 ```
 Kafka vs BullMQ Performance Benchmark
-https://github.com/yourusername/kafka-bullmq-benchmark
+https://github.com/praneethys/kafka-bullmq-benchmark
 2024
 ```
 

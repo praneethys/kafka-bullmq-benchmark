@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/common"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
 )
 
 // ExportToJSON exports benchmark results to a JSON file

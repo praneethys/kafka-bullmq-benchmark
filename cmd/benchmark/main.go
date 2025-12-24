@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/common"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/kafka"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/metrics"
-	"github.com/yourusername/kafka-bullmq-benchmark/pkg/redis"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/kafka"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/metrics"
+	"github.com/praneethys/kafka-bullmq-benchmark/pkg/redis"
 )
 
 func main() {
