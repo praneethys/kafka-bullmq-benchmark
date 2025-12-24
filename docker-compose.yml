@@ -4,6 +4,7 @@ services:
     image: apache/kafka:4.1.1
     hostname: kafka
     container_name: kafka
+    user: root
     ports:
       - "9092:9092"
       - "9093:9093"
@@ -27,7 +28,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
       # Storage
-      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_LOG_DIRS: '/var/lib/kafka/data'
 
       # Performance Tuning for High Throughput
       KAFKA_NUM_NETWORK_THREADS: 8
@@ -50,13 +51,13 @@ services:
       KAFKA_HEAP_OPTS: '-Xmx2G -Xms2G'
 
     volumes:
-      - kafka-data:/tmp/kraft-combined-logs
+      - kafka-data:/var/lib/kafka/data
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 10
-      start_period: 30s
+      start_period: 40s
 
   # Redis 7.4 - Official Redis for BullMQ
   redis:
