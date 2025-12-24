@@ -4,7 +4,8 @@
 *.dll
 *.so
 *.dylib
-benchmark
+/benchmark
+/build/benchmark
 *.test
 *.out
 
@@ -16,10 +17,10 @@ go.work
 /build/
 /dist/
 
-# Results and data
-/results/
-*.csv
-*.json
+# Results data files (but keep the directory structure)
+/results/*.csv
+/results/*.json
+!/results/README.md
 
 # IDE specific files
 .vscode/
