@@ -48,24 +48,24 @@ run-redis: build ## Run Redis only benchmark
 
 docker-up: ## Start Docker infrastructure (Kafka, Redis)
 	@echo "Starting Docker services..."
-	docker-compose up -d
+	docker compose up -d
 	@echo "Waiting for services to be healthy..."
 	@sleep 10
-	docker-compose ps
+	docker compose ps
 
 docker-down: ## Stop Docker infrastructure
 	@echo "Stopping Docker services..."
-	docker-compose down
+	docker compose down
 
 docker-restart: docker-down docker-up ## Restart Docker infrastructure
 
 docker-clean: ## Stop Docker and remove volumes
 	@echo "Cleaning Docker resources..."
-	docker-compose down -v
+	docker compose down -v
 	docker system prune -f
 
 docker-logs: ## Show Docker logs
-	docker-compose logs -f
+	docker compose logs -f
 
 test: ## Run tests
 	@echo "Running tests..."
