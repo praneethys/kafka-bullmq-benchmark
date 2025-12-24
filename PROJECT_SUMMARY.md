@@ -102,7 +102,7 @@ make clean             # Clean builds
 - ✅ Results export (JSON/CSV)
 
 ### Infrastructure
-- ✅ Docker Compose with Kafka, Zookeeper, Redis
+- ✅ Docker Compose with Kafka 4.1 (KRaft mode - no Zookeeper needed), Redis
 - ✅ Kafka UI for monitoring
 - ✅ Redis Commander for monitoring
 - ✅ Optimized performance settings

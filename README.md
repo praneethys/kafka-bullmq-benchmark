@@ -63,7 +63,7 @@ cd kafka-bullmq-benchmark
 ### 2. Start Infrastructure
 
 ```bash
-# Start Kafka, Zookeeper, and Redis
+# Start Kafka (KRaft mode) and Redis
 docker-compose up -d
 
 # Wait for services to be healthy (30-60 seconds)

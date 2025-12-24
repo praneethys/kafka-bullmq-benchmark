@@ -83,12 +83,13 @@ docker-compose ps
 You should see all services running:
 ```
 NAME                COMMAND                  SERVICE             STATUS              PORTS
-kafka               "/etc/confluent/dock…"   kafka               running (healthy)   0.0.0.0:9092->9092/tcp
+kafka               "kafka-server-start.…"   kafka               running (healthy)   0.0.0.0:9092->9092/tcp, 9093/tcp
 kafka-ui            "java -jar kafka-ui.…"   kafka-ui            running             0.0.0.0:8080->8080/tcp
 redis               "docker-entrypoint.s…"   redis               running (healthy)   0.0.0.0:6379->6379/tcp
 redis-commander     "docker-entrypoint.s…"   redis-commander     running             0.0.0.0:8081->8081/tcp
-zookeeper           "/etc/confluent/dock…"   zookeeper           running             2181/tcp
 ```
+
+**Note**: Kafka 4.1 uses KRaft mode (Kafka Raft) and does not require Zookeeper.
 
 ### 4. Verify Services
 
