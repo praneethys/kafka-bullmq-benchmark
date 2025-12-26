@@ -10,20 +10,20 @@ import (
 
 // Collector collects benchmark metrics
 type Collector struct {
-	mu              sync.Mutex
-	latencies       []time.Duration
-	errorCount      int
-	successCount    int
-	bytesProcessed  int64
-	startTime       time.Time
-	endTime         time.Time
+	mu             sync.Mutex
+	latencies      []time.Duration
+	errorCount     int
+	successCount   int
+	bytesProcessed int64
+	startTime      time.Time
+	endTime        time.Time
 }
 
 // NewCollector creates a new metrics collector
 func NewCollector() *Collector {
 	return &Collector{
-		latencies:  make([]time.Duration, 0, 1000000),
-		startTime:  time.Now(),
+		latencies: make([]time.Duration, 0, 1000000),
+		startTime: time.Now(),
 	}
 }
 

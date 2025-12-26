@@ -21,13 +21,14 @@ type KafkaQueue struct {
 func NewKafkaQueue(brokers, topic string, consumerGroup string) (*KafkaQueue, error) {
 	// High-throughput producer configuration
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": brokers,
-		"acks":              "1", // Wait for leader acknowledgment
-		"compression.type":  "lz4",
-		"linger.ms":         10,
-		"batch.size":        1000000,
-		"buffer.memory":     67108864, // 64MB
-		"max.in.flight":     5,
+		"bootstrap.servers":                     brokers,
+		"acks":                                  "1", // Wait for leader acknowledgment
+		"compression.type":                      "lz4",
+		"linger.ms":                             10,
+		"batch.size":                            1000000,
+		"queue.buffering.max.messages":          100000,
+		"queue.buffering.max.kbytes":            1048576, // 1GB
+		"max.in.flight.requests.per.connection": 5,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create producer: %w", err)
@@ -35,12 +36,12 @@ func NewKafkaQueue(brokers, topic string, consumerGroup string) (*KafkaQueue, er
 
 	// High-throughput consumer configuration
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":  brokers,
-		"group.id":           consumerGroup,
-		"auto.offset.reset":  "earliest",
-		"enable.auto.commit": true,
-		"fetch.min.bytes":    1024,
-		"fetch.max.wait.ms":  100,
+		"bootstrap.servers":         brokers,
+		"group.id":                  consumerGroup,
+		"auto.offset.reset":         "earliest",
+		"enable.auto.commit":        true,
+		"fetch.min.bytes":           1024,
+		"fetch.wait.max.ms":         100,
 		"max.partition.fetch.bytes": 10485760, // 10MB
 	})
 	if err != nil {

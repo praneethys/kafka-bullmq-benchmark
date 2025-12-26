@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+	"github.com/redis/go-redis/v9"
 )
 
 // RedisQueue implements the MessageQueue interface using Redis Streams (BullMQ equivalent)
 type RedisQueue struct {
-	client      *redis.Client
-	streamKey   string
+	client        *redis.Client
+	streamKey     string
 	consumerGroup string
 	consumerName  string
-	ctx         context.Context
+	ctx           context.Context
 }
 
 // NewRedisQueue creates a new Redis queue instance using Redis Streams
@@ -36,11 +36,11 @@ func NewRedisQueue(addr, streamKey, consumerGroup, consumerName string) (*RedisQ
 	}
 
 	rq := &RedisQueue{
-		client:       client,
-		streamKey:    streamKey,
+		client:        client,
+		streamKey:     streamKey,
 		consumerGroup: consumerGroup,
 		consumerName:  consumerName,
-		ctx:          ctx,
+		ctx:           ctx,
 	}
 
 	// Create consumer group (ignore error if already exists)

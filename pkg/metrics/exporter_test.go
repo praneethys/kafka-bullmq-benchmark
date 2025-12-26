@@ -184,18 +184,18 @@ func TestPrintResults(t *testing.T) {
 func TestCompareResults(t *testing.T) {
 	results := []*common.BenchmarkResult{
 		{
-			QueueType:    "Queue 1",
-			Throughput:   100.0,
-			MBPerSecond:  1.5,
-			AvgLatency:   5 * time.Millisecond,
-			P99Latency:   10 * time.Millisecond,
+			QueueType:   "Queue 1",
+			Throughput:  100.0,
+			MBPerSecond: 1.5,
+			AvgLatency:  5 * time.Millisecond,
+			P99Latency:  10 * time.Millisecond,
 		},
 		{
-			QueueType:    "Queue 2",
-			Throughput:   150.0,
-			MBPerSecond:  2.0,
-			AvgLatency:   3 * time.Millisecond,
-			P99Latency:   8 * time.Millisecond,
+			QueueType:   "Queue 2",
+			Throughput:  150.0,
+			MBPerSecond: 2.0,
+			AvgLatency:  3 * time.Millisecond,
+			P99Latency:  8 * time.Millisecond,
 		},
 	}
 

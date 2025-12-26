@@ -33,12 +33,12 @@ func TestNewBenchmark(t *testing.T) {
 
 // MockQueue implements the MessageQueue interface for testing
 type MockQueue struct {
-	name           string
-	produceCount   int
-	consumeCount   int
-	produceError   error
-	consumeError   error
-	shouldFail     bool
+	name         string
+	produceCount int
+	consumeCount int
+	produceError error
+	consumeError error
+	shouldFail   bool
 }
 
 func (m *MockQueue) Produce(msg *common.Message) error {

@@ -29,18 +29,18 @@ type BenchmarkConfig struct {
 
 // BenchmarkResult holds the results of a benchmark run
 type BenchmarkResult struct {
-	QueueType          string
-	MessageCount       int
-	Duration           time.Duration
-	Throughput         float64 // messages per second
-	AvgLatency         time.Duration
-	P50Latency         time.Duration
-	P95Latency         time.Duration
-	P99Latency         time.Duration
-	MaxLatency         time.Duration
-	MinLatency         time.Duration
-	ErrorCount         int
-	SuccessCount       int
-	BytesProcessed     int64
-	MBPerSecond        float64
+	QueueType      string
+	MessageCount   int
+	Duration       time.Duration
+	Throughput     float64 // messages per second
+	AvgLatency     time.Duration
+	P50Latency     time.Duration
+	P95Latency     time.Duration
+	P99Latency     time.Duration
+	MaxLatency     time.Duration
+	MinLatency     time.Duration
+	ErrorCount     int
+	SuccessCount   int
+	BytesProcessed int64
+	MBPerSecond    float64
 }

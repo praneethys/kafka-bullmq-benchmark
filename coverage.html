@@ -1,0 +1,1078 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>benchmark: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/praneethys/kafka-bullmq-benchmark/cmd/benchmark/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/praneethys/kafka-bullmq-benchmark/pkg/kafka/kafka.go (6.4%)</option>
+				
+				<option value="file2">github.com/praneethys/kafka-bullmq-benchmark/pkg/metrics/benchmark.go (1.0%)</option>
+				
+				<option value="file3">github.com/praneethys/kafka-bullmq-benchmark/pkg/metrics/collector.go (97.7%)</option>
+				
+				<option value="file4">github.com/praneethys/kafka-bullmq-benchmark/pkg/metrics/exporter.go (88.1%)</option>
+				
+				<option value="file5">github.com/praneethys/kafka-bullmq-benchmark/pkg/redis/redis.go (11.4%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "flag"
+        "fmt"
+        "log"
+        "os"
+        "os/signal"
+        "syscall"
+
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/kafka"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/metrics"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/redis"
+)
+
+func main() <span class="cov0" title="0">{
+        // Command line flags
+        messageCount := flag.Int("messages", 100000, "Number of messages to send")
+        messageSize := flag.Int("size", 1024, "Size of each message in bytes")
+        producers := flag.Int("producers", 10, "Number of producer goroutines")
+        consumers := flag.Int("consumers", 10, "Number of consumer goroutines")
+        duration := flag.Int("duration", 300, "Maximum duration in seconds")
+        queueType := flag.String("queue", "both", "Queue type to test: kafka, redis, or both")
+        kafkaBrokers := flag.String("kafka-brokers", "localhost:9092", "Kafka broker addresses")
+        kafkaTopic := flag.String("kafka-topic", "benchmark-topic", "Kafka topic name")
+        redisAddr := flag.String("redis-addr", "localhost:6379", "Redis server address")
+        redisStream := flag.String("redis-stream", "benchmark-stream", "Redis stream key")
+        outputDir := flag.String("output", "./results", "Output directory for results")
+
+        flag.Parse()
+
+        // Create output directory
+        if err := os.MkdirAll(*outputDir, 0755); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to create output directory: %v", err)
+        }</span>
+
+        // Setup signal handling
+        <span class="cov0" title="0">sigChan := make(chan os.Signal, 1)
+        signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+        config := &amp;common.BenchmarkConfig{
+                MessageCount:    *messageCount,
+                MessageSize:     *messageSize,
+                ProducerCount:   *producers,
+                ConsumerCount:   *consumers,
+                DurationSeconds: *duration,
+        }
+
+        fmt.Println("Kafka vs BullMQ (Redis Streams) Benchmark")
+        fmt.Println("==========================================")
+        fmt.Printf("Configuration:\n")
+        fmt.Printf("  Messages:       %d\n", config.MessageCount)
+        fmt.Printf("  Message Size:   %d bytes\n", config.MessageSize)
+        fmt.Printf("  Producers:      %d\n", config.ProducerCount)
+        fmt.Printf("  Consumers:      %d\n", config.ConsumerCount)
+        fmt.Printf("  Max Duration:   %d seconds\n", config.DurationSeconds)
+        fmt.Println()
+
+        var results []*common.BenchmarkResult
+
+        // Run Kafka benchmark
+        if *queueType == "kafka" || *queueType == "both" </span><span class="cov0" title="0">{
+                fmt.Println("Starting Kafka benchmark...")
+                kafkaResult, err := runKafkaBenchmark(config, *kafkaBrokers, *kafkaTopic)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("Kafka benchmark failed: %v", err)
+                }</span> else<span class="cov0" title="0"> {
+                        results = append(results, kafkaResult)
+                        metrics.PrintResults(kafkaResult)
+                }</span>
+        }
+
+        // Run Redis benchmark
+        <span class="cov0" title="0">if *queueType == "redis" || *queueType == "both" </span><span class="cov0" title="0">{
+                fmt.Println("Starting Redis (BullMQ) benchmark...")
+                redisResult, err := runRedisBenchmark(config, *redisAddr, *redisStream)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("Redis benchmark failed: %v", err)
+                }</span> else<span class="cov0" title="0"> {
+                        results = append(results, redisResult)
+                        metrics.PrintResults(redisResult)
+                }</span>
+        }
+
+        // Compare results if both were run
+        <span class="cov0" title="0">if len(results) &gt; 1 </span><span class="cov0" title="0">{
+                metrics.CompareResults(results)
+        }</span>
+
+        // Generate report
+        <span class="cov0" title="0">if err := metrics.GenerateReport(results, *outputDir); err != nil </span><span class="cov0" title="0">{
+                log.Printf("Failed to generate report: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Println("Benchmark completed successfully!")</span>
+}
+
+func runKafkaBenchmark(config *common.BenchmarkConfig, brokers, topic string) (*common.BenchmarkResult, error) <span class="cov0" title="0">{
+        // Create Kafka producer queue
+        producerQueue, err := kafka.NewKafkaQueue(brokers, topic, "benchmark-producer-group")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create Kafka producer: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer producerQueue.Close()
+
+        // Create Kafka consumer queue
+        consumerQueue, err := kafka.NewKafkaQueue(brokers, topic, "benchmark-consumer-group")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create Kafka consumer: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer consumerQueue.Close()
+
+        // Run benchmark
+        benchmark := metrics.NewBenchmark(config)
+        result, err := benchmark.RunFullBenchmark(producerQueue, consumerQueue)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("benchmark failed: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return result, nil</span>
+}
+
+func runRedisBenchmark(config *common.BenchmarkConfig, addr, streamKey string) (*common.BenchmarkResult, error) <span class="cov0" title="0">{
+        // Create Redis producer queue
+        producerQueue, err := redis.NewRedisQueue(addr, streamKey, "benchmark-group", "producer")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create Redis producer: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer producerQueue.Close()
+
+        // Create Redis consumer queue
+        consumerQueue, err := redis.NewRedisQueue(addr, streamKey, "benchmark-group", "consumer")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create Redis consumer: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer consumerQueue.Close()
+
+        // Run benchmark
+        benchmark := metrics.NewBenchmark(config)
+        result, err := benchmark.RunFullBenchmark(producerQueue, consumerQueue)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("benchmark failed: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return result, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package kafka
+
+import (
+        "encoding/json"
+        "fmt"
+        "time"
+
+        "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+)
+
+// KafkaQueue implements the MessageQueue interface for Apache Kafka
+type KafkaQueue struct {
+        producer *kafka.Producer
+        consumer *kafka.Consumer
+        topic    string
+        brokers  string
+}
+
+// NewKafkaQueue creates a new Kafka queue instance
+func NewKafkaQueue(brokers, topic string, consumerGroup string) (*KafkaQueue, error) <span class="cov8" title="1">{
+        // High-throughput producer configuration
+        producer, err := kafka.NewProducer(&amp;kafka.ConfigMap{
+                "bootstrap.servers": brokers,
+                "acks":              "1", // Wait for leader acknowledgment
+                "compression.type":  "lz4",
+                "linger.ms":         10,
+                "batch.size":        1000000,
+                "buffer.memory":     67108864, // 64MB
+                "max.in.flight":     5,
+        })
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to create producer: %w", err)
+        }</span>
+
+        // High-throughput consumer configuration
+        <span class="cov0" title="0">consumer, err := kafka.NewConsumer(&amp;kafka.ConfigMap{
+                "bootstrap.servers":  brokers,
+                "group.id":           consumerGroup,
+                "auto.offset.reset":  "earliest",
+                "enable.auto.commit": true,
+                "fetch.min.bytes":    1024,
+                "fetch.max.wait.ms":  100,
+                "max.partition.fetch.bytes": 10485760, // 10MB
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                producer.Close()
+                return nil, fmt.Errorf("failed to create consumer: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if err := consumer.Subscribe(topic, nil); err != nil </span><span class="cov0" title="0">{
+                producer.Close()
+                consumer.Close()
+                return nil, fmt.Errorf("failed to subscribe to topic: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;KafkaQueue{
+                producer: producer,
+                consumer: consumer,
+                topic:    topic,
+                brokers:  brokers,
+        }, nil</span>
+}
+
+// Produce sends a message to Kafka
+func (k *KafkaQueue) Produce(msg *common.Message) error <span class="cov0" title="0">{
+        data, err := json.Marshal(msg)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal message: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">kafkaMsg := &amp;kafka.Message{
+                TopicPartition: kafka.TopicPartition{
+                        Topic:     &amp;k.topic,
+                        Partition: kafka.PartitionAny,
+                },
+                Value: data,
+                Key:   []byte(msg.ID),
+        }
+
+        deliveryChan := make(chan kafka.Event)
+        if err := k.producer.Produce(kafkaMsg, deliveryChan); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to produce message: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">e := &lt;-deliveryChan
+        m := e.(*kafka.Message)
+        close(deliveryChan)
+
+        if m.TopicPartition.Error != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("delivery failed: %w", m.TopicPartition.Error)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// ProduceAsync sends a message to Kafka without waiting for acknowledgment
+func (k *KafkaQueue) ProduceAsync(msg *common.Message) error <span class="cov0" title="0">{
+        data, err := json.Marshal(msg)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal message: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">kafkaMsg := &amp;kafka.Message{
+                TopicPartition: kafka.TopicPartition{
+                        Topic:     &amp;k.topic,
+                        Partition: kafka.PartitionAny,
+                },
+                Value: data,
+                Key:   []byte(msg.ID),
+        }
+
+        if err := k.producer.Produce(kafkaMsg, nil); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to produce message: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Consume reads messages from Kafka and processes them with the provided handler
+func (k *KafkaQueue) Consume(handler func(*common.Message) error) error <span class="cov0" title="0">{
+        for </span><span class="cov0" title="0">{
+                msg, err := k.consumer.ReadMessage(100 * time.Millisecond)
+                if err != nil </span><span class="cov0" title="0">{
+                        if err.(kafka.Error).Code() == kafka.ErrTimedOut </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">return fmt.Errorf("consumer error: %w", err)</span>
+                }
+
+                <span class="cov0" title="0">var message common.Message
+                if err := json.Unmarshal(msg.Value, &amp;message); err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">if err := handler(&amp;message); err != nil </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+        }
+}
+
+// Flush waits for all messages to be delivered
+func (k *KafkaQueue) Flush(timeoutMs int) int <span class="cov0" title="0">{
+        return k.producer.Flush(timeoutMs)
+}</span>
+
+// Close closes the Kafka producer and consumer
+func (k *KafkaQueue) Close() error <span class="cov0" title="0">{
+        k.producer.Close()
+        return k.consumer.Close()
+}</span>
+
+// GetName returns the name of this queue implementation
+func (k *KafkaQueue) GetName() string <span class="cov0" title="0">{
+        return "Apache Kafka"
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package metrics
+
+import (
+        "fmt"
+        "sync"
+        "time"
+
+        "github.com/google/uuid"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+)
+
+// Benchmark runs performance tests on message queues
+type Benchmark struct {
+        config    *common.BenchmarkConfig
+        collector *Collector
+}
+
+// NewBenchmark creates a new benchmark instance
+func NewBenchmark(config *common.BenchmarkConfig) *Benchmark <span class="cov10" title="3">{
+        return &amp;Benchmark{
+                config:    config,
+                collector: NewCollector(),
+        }
+}</span>
+
+// RunProducerBenchmark runs a producer-only benchmark
+func (b *Benchmark) RunProducerBenchmark(queue common.MessageQueue) (*common.BenchmarkResult, error) <span class="cov0" title="0">{
+        b.collector.Reset()
+
+        payload := make([]byte, b.config.MessageSize)
+        for i := range payload </span><span class="cov0" title="0">{
+                payload[i] = byte(i % 256)
+        }</span>
+
+        <span class="cov0" title="0">var wg sync.WaitGroup
+        messagesPerProducer := b.config.MessageCount / b.config.ProducerCount
+
+        startTime := time.Now()
+
+        for p := 0; p &lt; b.config.ProducerCount; p++ </span><span class="cov0" title="0">{
+                wg.Add(1)
+                go func(producerID int) </span><span class="cov0" title="0">{
+                        defer wg.Done()
+
+                        for i := 0; i &lt; messagesPerProducer; i++ </span><span class="cov0" title="0">{
+                                msg := &amp;common.Message{
+                                        ID:        uuid.New().String(),
+                                        Payload:   payload,
+                                        Timestamp: time.Now(),
+                                }
+
+                                msgStart := time.Now()
+
+                                // Use async produce for Kafka if available
+                                if kq, ok := queue.(interface{ ProduceAsync(*common.Message) error }); ok </span><span class="cov0" title="0">{
+                                        if err := kq.ProduceAsync(msg); err != nil </span><span class="cov0" title="0">{
+                                                b.collector.RecordError()
+                                                continue</span>
+                                        }
+                                } else<span class="cov0" title="0"> {
+                                        if err := queue.Produce(msg); err != nil </span><span class="cov0" title="0">{
+                                                b.collector.RecordError()
+                                                continue</span>
+                                        }
+                                }
+
+                                <span class="cov0" title="0">latency := time.Since(msgStart)
+                                b.collector.RecordLatency(latency)
+                                b.collector.AddBytesProcessed(int64(len(payload)))</span>
+                        }
+                }(p)
+        }
+
+        <span class="cov0" title="0">wg.Wait()
+
+        // Flush Kafka producer if available
+        if kq, ok := queue.(interface{ Flush(int) int }); ok </span><span class="cov0" title="0">{
+                kq.Flush(30000) // 30 second timeout
+        }</span>
+
+        <span class="cov0" title="0">b.collector.Stop()
+
+        duration := time.Since(startTime)
+        fmt.Printf("Producer benchmark completed in %v\n", duration)
+
+        return b.collector.GetResults(queue.GetName(), b.config.MessageCount), nil</span>
+}
+
+// RunConsumerBenchmark runs a consumer-only benchmark
+func (b *Benchmark) RunConsumerBenchmark(queue common.MessageQueue, expectedMessages int) (*common.BenchmarkResult, error) <span class="cov0" title="0">{
+        b.collector.Reset()
+
+        var wg sync.WaitGroup
+        stopChan := make(chan bool)
+        receivedCount := 0
+        var countMu sync.Mutex
+
+        // Start consumers
+        for c := 0; c &lt; b.config.ConsumerCount; c++ </span><span class="cov0" title="0">{
+                wg.Add(1)
+                go func(consumerID int) </span><span class="cov0" title="0">{
+                        defer wg.Done()
+
+                        handler := func(msg *common.Message) error </span><span class="cov0" title="0">{
+                                latency := time.Since(msg.Timestamp)
+                                b.collector.RecordLatency(latency)
+                                b.collector.AddBytesProcessed(int64(len(msg.Payload)))
+
+                                countMu.Lock()
+                                receivedCount++
+                                if receivedCount &gt;= expectedMessages </span><span class="cov0" title="0">{
+                                        select </span>{
+                                        case stopChan &lt;- true:<span class="cov0" title="0"></span>
+                                        default:<span class="cov0" title="0"></span>
+                                        }
+                                }
+                                <span class="cov0" title="0">countMu.Unlock()
+
+                                return nil</span>
+                        }
+
+                        <span class="cov0" title="0">queue.Consume(handler)</span>
+                }(c)
+        }
+
+        // Wait for all messages or timeout
+        <span class="cov0" title="0">select </span>{
+        case &lt;-stopChan:<span class="cov0" title="0">
+                fmt.Printf("All %d messages consumed\n", expectedMessages)</span>
+        case &lt;-time.After(time.Duration(b.config.DurationSeconds) * time.Second):<span class="cov0" title="0">
+                fmt.Printf("Timeout reached, consumed %d messages\n", receivedCount)</span>
+        }
+
+        <span class="cov0" title="0">b.collector.Stop()
+
+        return b.collector.GetResults(queue.GetName(), receivedCount), nil</span>
+}
+
+// RunFullBenchmark runs both producer and consumer benchmarks
+func (b *Benchmark) RunFullBenchmark(producerQueue, consumerQueue common.MessageQueue) (*common.BenchmarkResult, error) <span class="cov0" title="0">{
+        fmt.Printf("Starting full benchmark for %s\n", producerQueue.GetName())
+        fmt.Printf("Configuration: %d messages, %d bytes each, %d producers, %d consumers\n",
+                b.config.MessageCount, b.config.MessageSize, b.config.ProducerCount, b.config.ConsumerCount)
+
+        b.collector.Reset()
+
+        payload := make([]byte, b.config.MessageSize)
+        for i := range payload </span><span class="cov0" title="0">{
+                payload[i] = byte(i % 256)
+        }</span>
+
+        <span class="cov0" title="0">var producerWg sync.WaitGroup
+        var consumerWg sync.WaitGroup
+
+        messagesPerProducer := b.config.MessageCount / b.config.ProducerCount
+        receivedCount := 0
+        var countMu sync.Mutex
+        stopChan := make(chan bool, 1)
+
+        // Start consumers first
+        for c := 0; c &lt; b.config.ConsumerCount; c++ </span><span class="cov0" title="0">{
+                consumerWg.Add(1)
+                go func(consumerID int) </span><span class="cov0" title="0">{
+                        defer consumerWg.Done()
+
+                        handler := func(msg *common.Message) error </span><span class="cov0" title="0">{
+                                latency := time.Since(msg.Timestamp)
+                                b.collector.RecordLatency(latency)
+                                b.collector.AddBytesProcessed(int64(len(msg.Payload)))
+
+                                countMu.Lock()
+                                receivedCount++
+                                if receivedCount &gt;= b.config.MessageCount </span><span class="cov0" title="0">{
+                                        select </span>{
+                                        case stopChan &lt;- true:<span class="cov0" title="0"></span>
+                                        default:<span class="cov0" title="0"></span>
+                                        }
+                                }
+                                <span class="cov0" title="0">countMu.Unlock()
+
+                                return nil</span>
+                        }
+
+                        <span class="cov0" title="0">consumerQueue.Consume(handler)</span>
+                }(c)
+        }
+
+        // Give consumers time to start
+        <span class="cov0" title="0">time.Sleep(2 * time.Second)
+
+        // Start producers
+        for p := 0; p &lt; b.config.ProducerCount; p++ </span><span class="cov0" title="0">{
+                producerWg.Add(1)
+                go func(producerID int) </span><span class="cov0" title="0">{
+                        defer producerWg.Done()
+
+                        for i := 0; i &lt; messagesPerProducer; i++ </span><span class="cov0" title="0">{
+                                msg := &amp;common.Message{
+                                        ID:        uuid.New().String(),
+                                        Payload:   payload,
+                                        Timestamp: time.Now(),
+                                }
+
+                                if kq, ok := producerQueue.(interface{ ProduceAsync(*common.Message) error }); ok </span><span class="cov0" title="0">{
+                                        if err := kq.ProduceAsync(msg); err != nil </span><span class="cov0" title="0">{
+                                                b.collector.RecordError()
+                                        }</span>
+                                } else<span class="cov0" title="0"> {
+                                        if err := producerQueue.Produce(msg); err != nil </span><span class="cov0" title="0">{
+                                                b.collector.RecordError()
+                                        }</span>
+                                }
+                        }
+                }(p)
+        }
+
+        <span class="cov0" title="0">producerWg.Wait()
+        fmt.Println("All producers finished")
+
+        // Flush Kafka producer if available
+        if kq, ok := producerQueue.(interface{ Flush(int) int }); ok </span><span class="cov0" title="0">{
+                kq.Flush(30000)
+        }</span>
+
+        // Wait for all messages to be consumed or timeout
+        <span class="cov0" title="0">select </span>{
+        case &lt;-stopChan:<span class="cov0" title="0">
+                fmt.Printf("All %d messages consumed\n", b.config.MessageCount)</span>
+        case &lt;-time.After(time.Duration(b.config.DurationSeconds) * time.Second):<span class="cov0" title="0">
+                fmt.Printf("Timeout reached, consumed %d/%d messages\n", receivedCount, b.config.MessageCount)</span>
+        }
+
+        <span class="cov0" title="0">b.collector.Stop()
+
+        return b.collector.GetResults(producerQueue.GetName(), b.config.MessageCount), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package metrics
+
+import (
+        "sort"
+        "sync"
+        "time"
+
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+)
+
+// Collector collects benchmark metrics
+type Collector struct {
+        mu              sync.Mutex
+        latencies       []time.Duration
+        errorCount      int
+        successCount    int
+        bytesProcessed  int64
+        startTime       time.Time
+        endTime         time.Time
+}
+
+// NewCollector creates a new metrics collector
+func NewCollector() *Collector <span class="cov4" title="11">{
+        return &amp;Collector{
+                latencies:  make([]time.Duration, 0, 1000000),
+                startTime:  time.Now(),
+        }
+}</span>
+
+// RecordLatency records a message latency
+func (c *Collector) RecordLatency(latency time.Duration) <span class="cov9" title="206">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        c.latencies = append(c.latencies, latency)
+        c.successCount++
+}</span>
+
+// RecordError records an error
+func (c *Collector) RecordError() <span class="cov3" title="6">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        c.errorCount++
+}</span>
+
+// AddBytesProcessed adds to the bytes processed counter
+func (c *Collector) AddBytesProcessed(bytes int64) <span class="cov8" title="104">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        c.bytesProcessed += bytes
+}</span>
+
+// Stop marks the end of the benchmark
+func (c *Collector) Stop() <span class="cov2" title="3">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        c.endTime = time.Now()
+}</span>
+
+// GetResults calculates and returns benchmark results
+func (c *Collector) GetResults(queueType string, messageCount int) *common.BenchmarkResult <span class="cov2" title="3">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+
+        if c.endTime.IsZero() </span><span class="cov0" title="0">{
+                c.endTime = time.Now()
+        }</span>
+
+        <span class="cov2" title="3">duration := c.endTime.Sub(c.startTime)
+
+        result := &amp;common.BenchmarkResult{
+                QueueType:      queueType,
+                MessageCount:   messageCount,
+                Duration:       duration,
+                ErrorCount:     c.errorCount,
+                SuccessCount:   c.successCount,
+                BytesProcessed: c.bytesProcessed,
+        }
+
+        if duration.Seconds() &gt; 0 </span><span class="cov2" title="3">{
+                result.Throughput = float64(c.successCount) / duration.Seconds()
+                result.MBPerSecond = float64(c.bytesProcessed) / (1024 * 1024) / duration.Seconds()
+        }</span>
+
+        <span class="cov2" title="3">if len(c.latencies) &gt; 0 </span><span class="cov2" title="3">{
+                sort.Slice(c.latencies, func(i, j int) bool </span><span class="cov10" title="225">{
+                        return c.latencies[i] &lt; c.latencies[j]
+                }</span>)
+
+                <span class="cov2" title="3">result.MinLatency = c.latencies[0]
+                result.MaxLatency = c.latencies[len(c.latencies)-1]
+                result.P50Latency = c.latencies[len(c.latencies)*50/100]
+                result.P95Latency = c.latencies[len(c.latencies)*95/100]
+                result.P99Latency = c.latencies[len(c.latencies)*99/100]
+
+                var sum time.Duration
+                for _, l := range c.latencies </span><span class="cov9" title="204">{
+                        sum += l
+                }</span>
+                <span class="cov2" title="3">result.AvgLatency = sum / time.Duration(len(c.latencies))</span>
+        }
+
+        <span class="cov2" title="3">return result</span>
+}
+
+// Reset resets all metrics
+func (c *Collector) Reset() <span class="cov1" title="1">{
+        c.mu.Lock()
+        defer c.mu.Unlock()
+        c.latencies = make([]time.Duration, 0, 1000000)
+        c.errorCount = 0
+        c.successCount = 0
+        c.bytesProcessed = 0
+        c.startTime = time.Now()
+        c.endTime = time.Time{}
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package metrics
+
+import (
+        "encoding/csv"
+        "encoding/json"
+        "fmt"
+        "os"
+        "strconv"
+        "strings"
+        "time"
+
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+)
+
+// ExportToJSON exports benchmark results to a JSON file
+func ExportToJSON(results []*common.BenchmarkResult, filename string) error <span class="cov6" title="2">{
+        file, err := os.Create(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create JSON file: %w", err)
+        }</span>
+        <span class="cov6" title="2">defer file.Close()
+
+        encoder := json.NewEncoder(file)
+        encoder.SetIndent("", "  ")
+        if err := encoder.Encode(results); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to encode JSON: %w", err)
+        }</span>
+
+        <span class="cov6" title="2">return nil</span>
+}
+
+// ExportToCSV exports benchmark results to a CSV file
+func ExportToCSV(results []*common.BenchmarkResult, filename string) error <span class="cov6" title="2">{
+        file, err := os.Create(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create CSV file: %w", err)
+        }</span>
+        <span class="cov6" title="2">defer file.Close()
+
+        writer := csv.NewWriter(file)
+        defer writer.Flush()
+
+        // Write header
+        header := []string{
+                "Queue Type",
+                "Message Count",
+                "Duration (s)",
+                "Throughput (msg/s)",
+                "MB/s",
+                "Avg Latency (ms)",
+                "P50 Latency (ms)",
+                "P95 Latency (ms)",
+                "P99 Latency (ms)",
+                "Min Latency (ms)",
+                "Max Latency (ms)",
+                "Success Count",
+                "Error Count",
+                "Bytes Processed",
+        }
+        if err := writer.Write(header); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write CSV header: %w", err)
+        }</span>
+
+        // Write data
+        <span class="cov6" title="2">for _, result := range results </span><span class="cov10" title="3">{
+                row := []string{
+                        result.QueueType,
+                        strconv.Itoa(result.MessageCount),
+                        fmt.Sprintf("%.2f", result.Duration.Seconds()),
+                        fmt.Sprintf("%.2f", result.Throughput),
+                        fmt.Sprintf("%.2f", result.MBPerSecond),
+                        fmt.Sprintf("%.2f", float64(result.AvgLatency.Microseconds())/1000.0),
+                        fmt.Sprintf("%.2f", float64(result.P50Latency.Microseconds())/1000.0),
+                        fmt.Sprintf("%.2f", float64(result.P95Latency.Microseconds())/1000.0),
+                        fmt.Sprintf("%.2f", float64(result.P99Latency.Microseconds())/1000.0),
+                        fmt.Sprintf("%.2f", float64(result.MinLatency.Microseconds())/1000.0),
+                        fmt.Sprintf("%.2f", float64(result.MaxLatency.Microseconds())/1000.0),
+                        strconv.Itoa(result.SuccessCount),
+                        strconv.Itoa(result.ErrorCount),
+                        strconv.FormatInt(result.BytesProcessed, 10),
+                }
+                if err := writer.Write(row); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to write CSV row: %w", err)
+                }</span>
+        }
+
+        <span class="cov6" title="2">return nil</span>
+}
+
+// PrintResults prints benchmark results to console
+func PrintResults(result *common.BenchmarkResult) <span class="cov1" title="1">{
+        fmt.Println("\n" + strings.Repeat("=", 80))
+        fmt.Printf("Benchmark Results: %s\n", result.QueueType)
+        fmt.Println(strings.Repeat("=", 80))
+        fmt.Printf("Messages:           %d\n", result.MessageCount)
+        fmt.Printf("Duration:           %v\n", result.Duration)
+        fmt.Printf("Throughput:         %.2f msg/s\n", result.Throughput)
+        fmt.Printf("Bandwidth:          %.2f MB/s\n", result.MBPerSecond)
+        fmt.Printf("Success Count:      %d\n", result.SuccessCount)
+        fmt.Printf("Error Count:        %d\n", result.ErrorCount)
+        fmt.Printf("Bytes Processed:    %d (%.2f MB)\n", result.BytesProcessed, float64(result.BytesProcessed)/(1024*1024))
+        fmt.Println("\nLatency Statistics:")
+        fmt.Printf("  Min:              %.2f ms\n", float64(result.MinLatency.Microseconds())/1000.0)
+        fmt.Printf("  Avg:              %.2f ms\n", float64(result.AvgLatency.Microseconds())/1000.0)
+        fmt.Printf("  P50:              %.2f ms\n", float64(result.P50Latency.Microseconds())/1000.0)
+        fmt.Printf("  P95:              %.2f ms\n", float64(result.P95Latency.Microseconds())/1000.0)
+        fmt.Printf("  P99:              %.2f ms\n", float64(result.P99Latency.Microseconds())/1000.0)
+        fmt.Printf("  Max:              %.2f ms\n", float64(result.MaxLatency.Microseconds())/1000.0)
+        fmt.Println(strings.Repeat("=", 80) + "\n")
+}</span>
+
+// CompareResults prints a comparison of multiple benchmark results
+func CompareResults(results []*common.BenchmarkResult) <span class="cov1" title="1">{
+        fmt.Println("\n" + strings.Repeat("=", 100))
+        fmt.Println("Benchmark Comparison")
+        fmt.Println(strings.Repeat("=", 100))
+        fmt.Printf("%-25s %-15s %-15s %-15s %-15s\n", "Queue Type", "Throughput", "MB/s", "Avg Latency", "P99 Latency")
+        fmt.Println(strings.Repeat("-", 100))
+
+        for _, result := range results </span><span class="cov6" title="2">{
+                fmt.Printf("%-25s %-15.2f %-15.2f %-15.2f %-15.2f\n",
+                        result.QueueType,
+                        result.Throughput,
+                        result.MBPerSecond,
+                        float64(result.AvgLatency.Microseconds())/1000.0,
+                        float64(result.P99Latency.Microseconds())/1000.0,
+                )
+        }</span>
+
+        <span class="cov1" title="1">fmt.Println(strings.Repeat("=", 100) + "\n")</span>
+}
+
+// GenerateReport generates a comprehensive benchmark report
+func GenerateReport(results []*common.BenchmarkResult, outputDir string) error <span class="cov1" title="1">{
+        timestamp := time.Now().Format("20060102-150405")
+
+        // Export to JSON
+        jsonFile := fmt.Sprintf("%s/benchmark-results-%s.json", outputDir, timestamp)
+        if err := ExportToJSON(results, jsonFile); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov1" title="1">fmt.Printf("JSON report saved to: %s\n", jsonFile)
+
+        // Export to CSV
+        csvFile := fmt.Sprintf("%s/benchmark-results-%s.csv", outputDir, timestamp)
+        if err := ExportToCSV(results, csvFile); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov1" title="1">fmt.Printf("CSV report saved to: %s\n", csvFile)
+
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package redis
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "time"
+
+        "github.com/redis/go-redis/v9"
+        "github.com/praneethys/kafka-bullmq-benchmark/pkg/common"
+)
+
+// RedisQueue implements the MessageQueue interface using Redis Streams (BullMQ equivalent)
+type RedisQueue struct {
+        client      *redis.Client
+        streamKey   string
+        consumerGroup string
+        consumerName  string
+        ctx         context.Context
+}
+
+// NewRedisQueue creates a new Redis queue instance using Redis Streams
+func NewRedisQueue(addr, streamKey, consumerGroup, consumerName string) (*RedisQueue, error) <span class="cov8" title="1">{
+        client := redis.NewClient(&amp;redis.Options{
+                Addr:         addr,
+                PoolSize:     100,
+                MinIdleConns: 10,
+                MaxRetries:   3,
+        })
+
+        ctx := context.Background()
+
+        // Test connection
+        if err := client.Ping(ctx).Err(); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to connect to Redis: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">rq := &amp;RedisQueue{
+                client:       client,
+                streamKey:    streamKey,
+                consumerGroup: consumerGroup,
+                consumerName:  consumerName,
+                ctx:          ctx,
+        }
+
+        // Create consumer group (ignore error if already exists)
+        client.XGroupCreateMkStream(ctx, streamKey, consumerGroup, "0")
+
+        return rq, nil</span>
+}
+
+// Produce sends a message to Redis Stream
+func (r *RedisQueue) Produce(msg *common.Message) error <span class="cov0" title="0">{
+        data, err := json.Marshal(msg)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal message: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">args := &amp;redis.XAddArgs{
+                Stream: r.streamKey,
+                Values: map[string]interface{}{
+                        "id":        msg.ID,
+                        "payload":   data,
+                        "timestamp": msg.Timestamp.Unix(),
+                },
+        }
+
+        if _, err := r.client.XAdd(r.ctx, args).Result(); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to add message to stream: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// ProduceAsync sends a message to Redis Stream (same as Produce for Redis)
+func (r *RedisQueue) ProduceAsync(msg *common.Message) error <span class="cov0" title="0">{
+        return r.Produce(msg)
+}</span>
+
+// Consume reads messages from Redis Stream and processes them with the provided handler
+func (r *RedisQueue) Consume(handler func(*common.Message) error) error <span class="cov0" title="0">{
+        for </span><span class="cov0" title="0">{
+                // Read from consumer group
+                streams, err := r.client.XReadGroup(r.ctx, &amp;redis.XReadGroupArgs{
+                        Group:    r.consumerGroup,
+                        Consumer: r.consumerName,
+                        Streams:  []string{r.streamKey, "&gt;"},
+                        Count:    10,
+                        Block:    100 * time.Millisecond,
+                }).Result()
+
+                if err != nil </span><span class="cov0" title="0">{
+                        if err == redis.Nil </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">return fmt.Errorf("consumer error: %w", err)</span>
+                }
+
+                <span class="cov0" title="0">for _, stream := range streams </span><span class="cov0" title="0">{
+                        for _, message := range stream.Messages </span><span class="cov0" title="0">{
+                                var msg common.Message
+
+                                if data, ok := message.Values["payload"].(string); ok </span><span class="cov0" title="0">{
+                                        if err := json.Unmarshal([]byte(data), &amp;msg); err != nil </span><span class="cov0" title="0">{
+                                                continue</span>
+                                        }
+                                } else<span class="cov0" title="0"> {
+                                        continue</span>
+                                }
+
+                                <span class="cov0" title="0">if err := handler(&amp;msg); err != nil </span><span class="cov0" title="0">{
+                                        continue</span>
+                                }
+
+                                // Acknowledge the message
+                                <span class="cov0" title="0">r.client.XAck(r.ctx, r.streamKey, r.consumerGroup, message.ID)</span>
+                        }
+                }
+        }
+}
+
+// Close closes the Redis client connection
+func (r *RedisQueue) Close() error <span class="cov0" title="0">{
+        return r.client.Close()
+}</span>
+
+// GetName returns the name of this queue implementation
+func (r *RedisQueue) GetName() string <span class="cov0" title="0">{
+        return "Redis Streams (BullMQ)"
+}</span>
+
+// GetStreamInfo returns information about the stream
+func (r *RedisQueue) GetStreamInfo() (*redis.XInfoStream, error) <span class="cov0" title="0">{
+        return r.client.XInfoStream(r.ctx, r.streamKey).Result()
+}</span>
+
+// TrimStream trims the stream to a maximum length
+func (r *RedisQueue) TrimStream(maxLen int64) error <span class="cov0" title="0">{
+        return r.client.XTrimMaxLen(r.ctx, r.streamKey, maxLen).Err()
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

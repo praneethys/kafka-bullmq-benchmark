@@ -219,26 +219,79 @@ Redis is configured for maximum performance:
 - Connection pooling (100 connections)
 - Batch reads (10 messages per read)
 
+## Testing
+
+The project includes comprehensive test coverage for all components.
+
+### Running Unit Tests
+
+```bash
+# Run all unit tests
+make test
+
+# Run tests for specific package
+go test ./pkg/common/...
+go test ./pkg/metrics/...
+
+# Run with coverage
+go test -cover ./...
+
+# Run with verbose output
+go test -v ./...
+```
+
+### Running Integration Tests
+
+Integration tests require running Kafka and Redis services. Start the infrastructure first:
+
+```bash
+# Start services
+docker compose up -d
+
+# Wait for services to be healthy
+sleep 30
+
+# Run Kafka integration tests
+KAFKA_TEST=true go test -v ./pkg/kafka/...
+
+# Run Redis integration tests
+REDIS_TEST=true go test -v ./pkg/redis/...
+
+# Run all integration tests
+KAFKA_TEST=true REDIS_TEST=true go test -v ./pkg/...
+```
+
+### Test Coverage
+
+The test suite includes:
+- **Unit Tests**: Core types, metrics collection, export functionality, main application
+- **Integration Tests**: Kafka and Redis queue implementations, end-to-end benchmarks
+- **Benchmark Tests**: Performance and throughput testing
+- **Mock Implementations**: For isolated testing
+- **Edge Case Tests**: Error handling, invalid inputs, resource cleanup
+
+Total test coverage: 20 unit tests, 32 integration tests (52 tests total)
+
 ## Troubleshooting
 
 ### Kafka Connection Issues
 
 ```bash
 # Check Kafka health
-docker-compose exec kafka kafka-broker-api-versions --bootstrap-server localhost:9092
+docker compose exec kafka kafka-broker-api-versions --bootstrap-server localhost:9092
 
 # View Kafka logs
-docker-compose logs kafka
+docker compose logs kafka
 ```
 
 ### Redis Connection Issues
 
 ```bash
 # Check Redis health
-docker-compose exec redis redis-cli ping
+docker compose exec redis redis-cli ping
 
 # View Redis logs
-docker-compose logs redis
+docker compose logs redis
 ```
 
 ### Resource Constraints
