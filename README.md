@@ -64,10 +64,10 @@ cd kafka-bullmq-benchmark
 
 ```bash
 # Start Kafka (KRaft mode) and Redis
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy (30-60 seconds)
-docker-compose ps
+docker compose ps
 ```
 
 ### 3. Install Dependencies
