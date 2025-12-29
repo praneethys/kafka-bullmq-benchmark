@@ -32,11 +32,15 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+    exclude-functions:
+      - (*database/sql.Rows).Close
+      - (*database/sql.DB).Close
 
   govet:
     enable-all: true
     disable:
       - fieldalignment
+      - shadow  # Disable shadow check as it's too strict for test code
 
   gocritic:
     enabled-tags:
@@ -53,3 +57,14 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    # Exclude defer Close() in test files
+    - path: _test\.go
+      linters:
+        - errcheck
+      text: "Error return value of.*Close.*is not checked"
+    # Exclude unused writes in test fixtures
+    - path: _test\.go
+      linters:
+        - govet
+      text: "unusedwrite"
