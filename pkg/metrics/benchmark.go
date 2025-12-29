@@ -119,7 +119,7 @@ func (b *Benchmark) RunConsumerBenchmark(queue common.MessageQueue, expectedMess
 				return nil
 			}
 
-			queue.Consume(handler)
+			_ = queue.Consume(handler) //nolint:errcheck // Consumer runs until context cancel
 		}(c)
 	}
 
@@ -181,7 +181,7 @@ func (b *Benchmark) RunFullBenchmark(producerQueue, consumerQueue common.Message
 				return nil
 			}
 
-			consumerQueue.Consume(handler)
+			_ = consumerQueue.Consume(handler) //nolint:errcheck // Consumer runs until context cancel
 		}(c)
 	}
 

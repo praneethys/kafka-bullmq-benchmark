@@ -174,8 +174,8 @@ func TestRedisProduceAndConsume(t *testing.T) {
 	}
 
 	for _, msg := range testMessages {
-		if err := producerQueue.Produce(msg); err != nil {
-			t.Fatalf("Failed to produce message %s: %v", msg.ID, err)
+		if prodErr := producerQueue.Produce(msg); prodErr != nil {
+			t.Fatalf("Failed to produce message %s: %v", msg.ID, prodErr)
 		}
 	}
 
@@ -242,7 +242,7 @@ func TestRedisProduceInvalidMessage(t *testing.T) {
 	}
 
 	// This should not panic
-	_ = queue.Produce(msg)
+	_ = queue.Produce(msg) //nolint:errcheck // Intentionally testing edge case
 }
 
 func TestRedisGetStreamInfo(t *testing.T) {
@@ -263,7 +263,7 @@ func TestRedisGetStreamInfo(t *testing.T) {
 			Payload:   []byte("test"),
 			Timestamp: time.Now(),
 		}
-		queue.Produce(msg)
+		_ = queue.Produce(msg) //nolint:errcheck // Best effort in test setup
 	}
 
 	info, err := queue.GetStreamInfo()
@@ -294,7 +294,7 @@ func TestRedisTrimStream(t *testing.T) {
 			Payload:   []byte("test"),
 			Timestamp: time.Now(),
 		}
-		queue.Produce(msg)
+		_ = queue.Produce(msg) //nolint:errcheck // Best effort in test setup
 	}
 
 	// Trim to 5 messages
@@ -360,8 +360,8 @@ func TestRedisHighThroughput(t *testing.T) {
 			Payload:   make([]byte, 1024), // 1KB payload
 			Timestamp: time.Now(),
 		}
-		if err := queue.ProduceAsync(msg); err != nil {
-			t.Errorf("Failed to produce message %d: %v", i, err)
+		if prodErr := queue.ProduceAsync(msg); prodErr != nil {
+			t.Errorf("Failed to produce message %d: %v", i, prodErr)
 		}
 	}
 

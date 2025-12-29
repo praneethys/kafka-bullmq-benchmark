@@ -38,7 +38,6 @@ type MockQueue struct {
 	consumeCount int
 	produceError error
 	consumeError error
-	shouldFail   bool
 }
 
 func (m *MockQueue) Produce(msg *common.Message) error {

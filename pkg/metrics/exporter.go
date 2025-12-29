@@ -18,7 +18,9 @@ func ExportToJSON(results []*common.BenchmarkResult, filename string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create JSON file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() //nolint:errcheck // Best effort cleanup in defer
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
@@ -35,7 +37,9 @@ func ExportToCSV(results []*common.BenchmarkResult, filename string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create CSV file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close() //nolint:errcheck // Best effort cleanup in defer
+	}()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()

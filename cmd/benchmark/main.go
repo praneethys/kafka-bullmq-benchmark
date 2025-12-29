@@ -31,7 +31,7 @@ func main() {
 	flag.Parse()
 
 	// Create output directory
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+	if err := os.MkdirAll(*outputDir, 0o755); err != nil {
 		log.Fatalf("Failed to create output directory: %v", err)
 	}
 
@@ -102,14 +102,22 @@ func runKafkaBenchmark(config *common.BenchmarkConfig, brokers, topic string) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka producer: %w", err)
 	}
-	defer producerQueue.Close()
+	defer func() {
+		if closeErr := producerQueue.Close(); closeErr != nil {
+			log.Printf("Error closing producer queue: %v", closeErr)
+		}
+	}()
 
 	// Create Kafka consumer queue
 	consumerQueue, err := kafka.NewKafkaQueue(brokers, topic, "benchmark-consumer-group")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka consumer: %w", err)
 	}
-	defer consumerQueue.Close()
+	defer func() {
+		if closeErr := consumerQueue.Close(); closeErr != nil {
+			log.Printf("Error closing consumer queue: %v", closeErr)
+		}
+	}()
 
 	// Run benchmark
 	benchmark := metrics.NewBenchmark(config)
@@ -127,14 +135,22 @@ func runRedisBenchmark(config *common.BenchmarkConfig, addr, streamKey string) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Redis producer: %w", err)
 	}
-	defer producerQueue.Close()
+	defer func() {
+		if closeErr := producerQueue.Close(); closeErr != nil {
+			log.Printf("Error closing producer queue: %v", closeErr)
+		}
+	}()
 
 	// Create Redis consumer queue
 	consumerQueue, err := redis.NewRedisQueue(addr, streamKey, "benchmark-group", "consumer")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Redis consumer: %w", err)
 	}
-	defer consumerQueue.Close()
+	defer func() {
+		if closeErr := consumerQueue.Close(); closeErr != nil {
+			log.Printf("Error closing consumer queue: %v", closeErr)
+		}
+	}()
 
 	// Run benchmark
 	benchmark := metrics.NewBenchmark(config)

@@ -471,7 +471,7 @@ func TestOutputDirectoryCreation(t *testing.T) {
 	outputDir := tempDir + "/test-results"
 
 	// Simulate what main() does
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		t.Fatalf("Failed to create output directory: %v", err)
 	}
 
@@ -486,7 +486,7 @@ func TestOutputDirectoryCreation(t *testing.T) {
 	}
 
 	// Check permissions (on Unix-like systems)
-	if info.Mode().Perm()&0755 == 0 {
+	if info.Mode().Perm()&0o755 == 0 {
 		t.Error("Expected directory to have execute permissions")
 	}
 }

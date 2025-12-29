@@ -164,8 +164,8 @@ func TestKafkaProduceAndConsume(t *testing.T) {
 	}
 
 	for _, msg := range testMessages {
-		if err := producerQueue.Produce(msg); err != nil {
-			t.Fatalf("Failed to produce message %s: %v", msg.ID, err)
+		if prodErr := producerQueue.Produce(msg); prodErr != nil {
+			t.Fatalf("Failed to produce message %s: %v", msg.ID, prodErr)
 		}
 	}
 
@@ -235,7 +235,7 @@ func TestKafkaProduceInvalidMessage(t *testing.T) {
 	}
 
 	// This should not panic
-	_ = queue.Produce(msg)
+	_ = queue.Produce(msg) //nolint:errcheck // Intentionally testing edge case
 }
 
 func TestKafkaFlush(t *testing.T) {
@@ -254,7 +254,7 @@ func TestKafkaFlush(t *testing.T) {
 			Payload:   []byte("test"),
 			Timestamp: time.Now(),
 		}
-		queue.ProduceAsync(msg)
+		_ = queue.ProduceAsync(msg) //nolint:errcheck // Fire and forget for flush test
 	}
 
 	// Flush with timeout

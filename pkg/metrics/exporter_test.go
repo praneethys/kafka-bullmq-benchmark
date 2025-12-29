@@ -32,7 +32,7 @@ func TestExportToJSON(t *testing.T) {
 	}
 
 	// Verify file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	if _, statErr := os.Stat(filename); os.IsNotExist(statErr) {
 		t.Error("JSON file was not created")
 	}
 
@@ -93,7 +93,7 @@ func TestExportToCSV(t *testing.T) {
 	}
 
 	// Verify file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	if _, statErr := os.Stat(filename); os.IsNotExist(statErr) {
 		t.Error("CSV file was not created")
 	}
 
