@@ -17,6 +17,7 @@ type RedisQueue struct {
 	consumerGroup string
 	consumerName  string
 	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 // NewRedisQueue creates a new Redis queue instance using Redis Streams
@@ -28,10 +29,11 @@ func NewRedisQueue(addr, streamKey, consumerGroup, consumerName string) (*RedisQ
 		MaxRetries:   3,
 	})
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Test connection
 	if err := client.Ping(ctx).Err(); err != nil {
+		cancel()
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
@@ -41,6 +43,7 @@ func NewRedisQueue(addr, streamKey, consumerGroup, consumerName string) (*RedisQ
 		consumerGroup: consumerGroup,
 		consumerName:  consumerName,
 		ctx:           ctx,
+		cancel:        cancel,
 	}
 
 	// Create consumer group (ignore error if already exists)
@@ -80,40 +83,51 @@ func (r *RedisQueue) ProduceAsync(msg *common.Message) error {
 // Consume reads messages from Redis Stream and processes them with the provided handler
 func (r *RedisQueue) Consume(handler func(*common.Message) error) error {
 	for {
-		// Read from consumer group
-		streams, err := r.client.XReadGroup(r.ctx, &redis.XReadGroupArgs{
-			Group:    r.consumerGroup,
-			Consumer: r.consumerName,
-			Streams:  []string{r.streamKey, ">"},
-			Count:    10,
-			Block:    100 * time.Millisecond,
-		}).Result()
+		select {
+		case <-r.ctx.Done():
+			return nil
+		default:
+			// Read from consumer group
+			streams, err := r.client.XReadGroup(r.ctx, &redis.XReadGroupArgs{
+				Group:    r.consumerGroup,
+				Consumer: r.consumerName,
+				Streams:  []string{r.streamKey, ">"},
+				Count:    10,
+				Block:    100 * time.Millisecond,
+			}).Result()
 
-		if err != nil {
-			if err == redis.Nil {
-				continue
+			if err != nil {
+				if err == redis.Nil {
+					continue
+				}
+				// Check if context is cancelled before returning error
+				select {
+				case <-r.ctx.Done():
+					return nil
+				default:
+					return fmt.Errorf("consumer error: %w", err)
+				}
 			}
-			return fmt.Errorf("consumer error: %w", err)
-		}
 
-		for _, stream := range streams {
-			for _, message := range stream.Messages {
-				var msg common.Message
+			for _, stream := range streams {
+				for _, message := range stream.Messages {
+					var msg common.Message
 
-				if data, ok := message.Values["payload"].(string); ok {
-					if err := json.Unmarshal([]byte(data), &msg); err != nil {
+					if data, ok := message.Values["payload"].(string); ok {
+						if err := json.Unmarshal([]byte(data), &msg); err != nil {
+							continue
+						}
+					} else {
 						continue
 					}
-				} else {
-					continue
-				}
 
-				if err := handler(&msg); err != nil {
-					continue
-				}
+					if err := handler(&msg); err != nil {
+						continue
+					}
 
-				// Acknowledge the message
-				r.client.XAck(r.ctx, r.streamKey, r.consumerGroup, message.ID)
+					// Acknowledge the message
+					r.client.XAck(r.ctx, r.streamKey, r.consumerGroup, message.ID)
+				}
 			}
 		}
 	}
@@ -121,6 +135,12 @@ func (r *RedisQueue) Consume(handler func(*common.Message) error) error {
 
 // Close closes the Redis client connection
 func (r *RedisQueue) Close() error {
+	// Cancel context to stop all consumers
+	r.cancel()
+
+	// Give consumers a moment to exit gracefully
+	time.Sleep(200 * time.Millisecond)
+
 	return r.client.Close()
 }
 

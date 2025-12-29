@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -15,10 +16,12 @@ type KafkaQueue struct {
 	consumer *kafka.Consumer
 	topic    string
 	brokers  string
+	ctx      context.Context
+	cancel   context.CancelFunc
 }
 
 // NewKafkaQueue creates a new Kafka queue instance
-func NewKafkaQueue(brokers, topic string, consumerGroup string) (*KafkaQueue, error) {
+func NewKafkaQueue(brokers, topic, consumerGroup string) (*KafkaQueue, error) {
 	// High-throughput producer configuration
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers":                     brokers,
@@ -51,15 +54,19 @@ func NewKafkaQueue(brokers, topic string, consumerGroup string) (*KafkaQueue, er
 
 	if err := consumer.Subscribe(topic, nil); err != nil {
 		producer.Close()
-		consumer.Close()
+		_ = consumer.Close() //nolint:errcheck // Best effort cleanup on error path
 		return nil, fmt.Errorf("failed to subscribe to topic: %w", err)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
 
 	return &KafkaQueue{
 		producer: producer,
 		consumer: consumer,
 		topic:    topic,
 		brokers:  brokers,
+		ctx:      ctx,
+		cancel:   cancel,
 	}, nil
 }
 
@@ -85,7 +92,11 @@ func (k *KafkaQueue) Produce(msg *common.Message) error {
 	}
 
 	e := <-deliveryChan
-	m := e.(*kafka.Message)
+	m, ok := e.(*kafka.Message)
+	if !ok {
+		close(deliveryChan)
+		return fmt.Errorf("unexpected event type")
+	}
 	close(deliveryChan)
 
 	if m.TopicPartition.Error != nil {
@@ -121,21 +132,33 @@ func (k *KafkaQueue) ProduceAsync(msg *common.Message) error {
 // Consume reads messages from Kafka and processes them with the provided handler
 func (k *KafkaQueue) Consume(handler func(*common.Message) error) error {
 	for {
-		msg, err := k.consumer.ReadMessage(100 * time.Millisecond)
-		if err != nil {
-			if err.(kafka.Error).Code() == kafka.ErrTimedOut {
+		select {
+		case <-k.ctx.Done():
+			return nil
+		default:
+			msg, err := k.consumer.ReadMessage(100 * time.Millisecond)
+			if err != nil {
+				kafkaErr, ok := err.(kafka.Error)
+				if ok && kafkaErr.Code() == kafka.ErrTimedOut {
+					continue
+				}
+				// Check if context is cancelled before returning error
+				select {
+				case <-k.ctx.Done():
+					return nil
+				default:
+					return fmt.Errorf("consumer error: %w", err)
+				}
+			}
+
+			var message common.Message
+			if err := json.Unmarshal(msg.Value, &message); err != nil {
 				continue
 			}
-			return fmt.Errorf("consumer error: %w", err)
-		}
 
-		var message common.Message
-		if err := json.Unmarshal(msg.Value, &message); err != nil {
-			continue
-		}
-
-		if err := handler(&message); err != nil {
-			continue
+			if err := handler(&message); err != nil {
+				continue
+			}
 		}
 	}
 }
@@ -147,6 +170,12 @@ func (k *KafkaQueue) Flush(timeoutMs int) int {
 
 // Close closes the Kafka producer and consumer
 func (k *KafkaQueue) Close() error {
+	// Cancel context to stop all consumers
+	k.cancel()
+
+	// Give consumers a moment to exit gracefully
+	time.Sleep(200 * time.Millisecond)
+
 	k.producer.Close()
 	return k.consumer.Close()
 }
