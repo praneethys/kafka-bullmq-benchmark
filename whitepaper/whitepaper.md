@@ -739,7 +739,7 @@ Source: `./results/benchmark-results-20251229-200250.csv`
 
 ## Appendix C: Configuration Files
 
-[REFERENCE TO DOCKER-COMPOSE AND CONFIG FILES]
+[[REFERENCE TO DOCKER-COMPOSE AND CONFIG FILES]](https://github.com/praneethys/kafka-bullmq-benchmark/blob/main/docker-compose.yml)
 
 ## Appendix D: Reproducibility
 
