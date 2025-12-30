@@ -45,29 +45,45 @@ Our analysis focuses on:
 
 ### 2.1 Apache Kafka Architecture
 
-Apache Kafka is a distributed streaming platform with the following key components:
+Apache Kafka 4.1 is a distributed streaming platform using KRaft (Kafka Raft) consensus protocol, eliminating the need for ZooKeeper.
 
 **Core Components:**
 - **Brokers**: Stateful servers that store and serve messages
+- **Controllers**: Integrated metadata management using Raft consensus (replaces ZooKeeper)
 - **Topics**: Logical channels for message organization
-- **Partitions**: Parallel processing units within topics
-- **ZooKeeper**: Coordination service for cluster management
+- **Partitions**: Parallel processing units within topics (10 partitions in our configuration)
 - **Producers**: Clients that publish messages
 - **Consumers**: Clients that subscribe to topics
+- **Consumer Groups**: Coordinated consumption with load balancing
+
+**KRaft Mode Architecture (Kafka 4.1+):**
+- **Unified Process**: Brokers can serve dual roles as both broker and controller
+- **Raft Consensus**: Controller quorum manages metadata via Raft protocol
+- **No External Dependencies**: Self-contained cluster management
+- **Faster Operations**: Reduced latency for metadata operations
+- **Simplified Deployment**: Single service type, easier operations
+
+**Our Test Configuration:**
+- Node ID: 1 (single node acting as both broker and controller)
+- Process Roles: broker,controller
+- Listeners: PLAINTEXT (internal), PLAINTEXT_HOST (external), CONTROLLER (Raft)
+- Partitions: 10 (for parallel processing)
+- Replication Factor: 1 (single broker deployment)
 
 **Key Features:**
-- Persistent storage with configurable retention
+- Persistent storage with configurable retention (1 hour in tests)
 - Horizontal scalability via partitioning
-- High availability through replication
+- High availability through replication (not utilized in single-node test)
 - Ordered message delivery within partitions
-- Consumer group management
+- Consumer group management with automatic rebalancing
 
 **Performance Optimizations:**
 - Zero-copy data transfer
-- Sequential disk I/O
-- Batch compression (LZ4, Snappy, GZIP)
-- Configurable acknowledgment levels
-- Page cache utilization
+- Sequential disk I/O with page cache utilization
+- Batch compression (LZ4 used in our tests)
+- Configurable acknowledgment levels (acks=1 for leader acknowledgment)
+- Network and I/O thread tuning (8 threads each)
+- Large socket buffers (100KB) for high throughput
 
 ### 2.2 BullMQ (Redis Streams) Architecture
 
@@ -132,8 +148,8 @@ This abstraction ensures fair comparison by providing identical interfaces for b
 - OS: macOS Darwin 24.6.0
 - Docker: Docker Compose V2
 - Go: 1.23.0
-- Kafka: 7.5.0 (Confluent)
-- Redis: 7.x (Alpine)
+- Kafka: 4.1.1 (Apache Kafka with KRaft mode)
+- Redis: 7.4 (Alpine)
 
 ### 3.2 Benchmark Configuration
 
@@ -148,12 +164,18 @@ This abstraction ensures fair comparison by providing identical interfaces for b
 | Duration | 60-300 seconds |
 
 **Kafka Configuration:**
-- Partitions: 10
+- Version: Apache Kafka 4.1.1 (KRaft mode, no ZooKeeper)
+- Mode: Single node acting as both broker and controller
+- Partitions: 10 per topic
 - Replication Factor: 1 (single broker)
 - Compression: LZ4
 - Batch Size: 1MB
 - Linger: 10ms
 - Acks: 1 (leader acknowledgment)
+- Network Threads: 8
+- I/O Threads: 8
+- Retention: 1 hour
+- JVM Heap: 2GB
 
 **Redis Configuration:**
 - Max Memory: 2GB
